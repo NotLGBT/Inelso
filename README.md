@@ -93,4 +93,4 @@ Nothis special at all :)
 
 # Expected Behaviour: 
 
-![alt text](https://github.com/NotLGBT/Inelso/blob/NotLGBT/Lancelot/be.gif)
+![alt text](https://github.com/NotLGBT/Inelso/blob/NotLGBT/Lancelot/images/be.gif)
