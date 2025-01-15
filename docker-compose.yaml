@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./code:/code
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=your-secret-key
+      - ALLOWED_HOSTS=localhost,0.0.0.0
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+    depends_on:
+      - db
+      - rabbitmq
+
+  db:
+    image: postgres:14
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  celery:
+    build: .
+    command: celery -A tech worker --loglevel=info
+    # command: >
+    #    sh -c "python manage.py migrate &&
+    #           celery -A tech worker --loglevel=info"
+
+    volumes:
+      - ./code:/code
+    environment:
+      - DEBUG=True
+      # - SECRET_KEY=your-secret-key
+      - ALLOWED_HOSTS=localhost,0.0.0.0
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=django-db
+      - DJANGO_SETTINGS_MODULE=tech.settings
+    # ports: 
+    #   - "15672:15672"
+    depends_on:
+      - web
+      - db
+      - rabbitmq

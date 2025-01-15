@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-celery
+  labels:
+    app: django-celery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django-celery
+  template:
+    metadata:
+      labels:
+        app: django-celery
+    spec:
+      imagePullSecrets:
+      - name: ghcr-secret
+      containers:
+      - name: django
+        image: ghcr.io/notlgbt/task-web
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: django-config
+        - secretRef:
+            name: django-secret
+        command: ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "240Mi"
+            cpu: "500m"
+      - name: celery
+        image: ghcr.io/notlgbt/task-celery
+        envFrom:
+        - configMapRef:
+            name: django-config
+        - secretRef:
+            name: django-secret
+        command: ["sh", "-c", "celery -A tech worker --loglevel=info"]
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "500Mi"
+            cpu: "700m"
