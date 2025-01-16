@@ -21,6 +21,12 @@ Inelso/
 │   │   └── configmap.yaml
 │   └── secret/
 │       └── secret.yaml
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+├── images/
+│   └── [image files]
 └── docker-compose.yaml
 ```
 
