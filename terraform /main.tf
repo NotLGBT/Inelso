@@ -4,7 +4,7 @@ module "bucket" {
 }
 module "gke_cluster" {
   source         = "./modules/gke-cluster-module"  
-  project_id     = "aqueous-sandbox-432016-j4"
+  project_id     = "------------"
   region         = "europe-central2"
   cluster_name   = "my-gke-cluster"
   node_count     = 1

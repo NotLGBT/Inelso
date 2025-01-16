@@ -1,0 +1,47 @@
+pipeline {
+    agent any 
+    parameters {
+
+    }
+
+    environment {
+        KUB_NAMESPACE = 'default'
+        GIT_BRANCH = 'NotLGBT'
+        GIT_SECRET = credentials('GIT_SECRET_READ')
+        GIT_SSH_COMMAND = 'ssh -o StrictHostKeyChecking=no'
+    }
+
+    stages {
+        stage('Check Kube') {
+            steps {
+                echo "Running kubectl test"
+                script {
+                    // Ensure KUBECONFIG is set properly
+                    withCredentials([file(credentialsId: 'k8s', variable: 'KUBECONFIG')]) {
+                        sh "kubectl get nodes"
+                    }
+                }
+            }
+        }
+
+        stage('Install/Update Kubernetes manifest') {
+            steps {
+                withCredentials([
+                                 file(credentialsId: 'k8s' , variable: 'KUBECONFIG'),
+                                 usernamePassword(credentialsId: 'GitContainerCredentials', passwordVariable: 'PASSWORD_VAR', usernameVariable: 'USERNAME')]) {
+                    sh """
+                       git clone --filter=blob:none --no-checkout https://$GIT_SECRET@github.org/NotLGBT/Inelso.git
+                       cd kuber/
+                       git sparse-checkout set --cone
+                       git checkout $GIT_BRANCH
+                       echo "Applying manifests..."
+                       for manifest in *.yaml; do
+                           echo "Applying $manifest..."
+                           kubectl apply -f "$manifest" --namespace "$KUB_NAMESPACE"
+                       done
+                       """
+                }
+            }
+        }
+    }
+}
